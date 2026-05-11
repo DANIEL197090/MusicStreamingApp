@@ -280,3 +280,12 @@ const createFeaturedPlaylist = async (req, res, next) => {
     res.status(201).json({ success: true, message: "Featured playlist created", data: { playlist } });
   } catch (error) { next(error); }
 };
+
+module.exports = {
+  createSong, updateSong, deleteSong, featureSong,
+  createArtist, updateArtist, deleteArtist,
+  createAlbum, updateAlbum, deleteAlbum,
+  getUsers, suspendUser, deleteUser,
+  getAnalyticsOverview, getStreamAnalytics,
+  createFeaturedPlaylist,
+};
