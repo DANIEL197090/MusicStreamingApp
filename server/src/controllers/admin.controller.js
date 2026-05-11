@@ -137,3 +137,24 @@ const deleteArtist = async (req, res, next) => {
     res.json({ success: true, message: "Artist deleted" });
   } catch (error) { next(error); }
 };
+
+// ==================== ALBUM MANAGEMENT ====================
+
+const createAlbum = async (req, res, next) => {
+  try {
+    const { title, artist, genre, releaseDate, description } = req.body;
+    const genreArray = genre ? (typeof genre === "string" ? JSON.parse(genre) : genre) : [];
+    const artistDoc = await Artist.findById(artist);
+    if (!artistDoc) return res.status(404).json({ success: false, message: "Artist not found" });
+    let coverResult = null;
+    if (req.file) coverResult = await uploadImage(req.file.buffer, "albums");
+    const album = await Album.create({
+      title, artist, genre: genreArray,
+      coverImage: coverResult ? coverResult.url : null,
+      coverImagePublicId: coverResult ? coverResult.publicId : null,
+      releaseDate: releaseDate || new Date(), description: description || "",
+    });
+    const populated = await Album.findById(album._id).populate("artist", "name image");
+    res.status(201).json({ success: true, message: "Album created", data: { album: populated } });
+  } catch (error) { next(error); }
+};
