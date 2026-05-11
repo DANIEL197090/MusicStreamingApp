@@ -77,3 +77,13 @@ const deleteSong = async (req, res, next) => {
     res.json({ success: true, message: "Song deleted" });
   } catch (error) { next(error); }
 };
+
+const featureSong = async (req, res, next) => {
+  try {
+    const song = await Song.findById(req.params.id);
+    if (!song) return res.status(404).json({ success: false, message: "Song not found" });
+    song.isFeatured = !song.isFeatured;
+    await song.save();
+    res.json({ success: true, message: `Song ${song.isFeatured ? "featured" : "unfeatured"}`, data: { isFeatured: song.isFeatured } });
+  } catch (error) { next(error); }
+};
