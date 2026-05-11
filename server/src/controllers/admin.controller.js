@@ -190,3 +190,22 @@ const deleteAlbum = async (req, res, next) => {
     res.json({ success: true, message: "Album deleted" });
   } catch (error) { next(error); }
 };
+
+// ==================== USER MANAGEMENT ====================
+
+const getUsers = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, search, status } = req.query;
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const filter = {};
+    if (search) filter.$or = [{ fullName: new RegExp(search, "i") }, { email: new RegExp(search, "i") }, { username: new RegExp(search, "i") }];
+    if (status === "active") filter.isActive = true;
+    if (status === "suspended") filter.isActive = false;
+    const [users, total] = await Promise.all([
+      User.find(filter).sort("-createdAt").skip((pageNum - 1) * limitNum).limit(limitNum).lean(),
+      User.countDocuments(filter),
+    ]);
+    res.json({ success: true, data: { users, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } } });
+  } catch (error) { next(error); }
+};
