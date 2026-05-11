@@ -209,3 +209,14 @@ const getUsers = async (req, res, next) => {
     res.json({ success: true, data: { users, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } } });
   } catch (error) { next(error); }
 };
+
+const suspendUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role === "admin") return res.status(400).json({ success: false, message: "Cannot suspend admin" });
+    user.isActive = !user.isActive;
+    await user.save();
+    res.json({ success: true, message: `User ${user.isActive ? "activated" : "suspended"}`, data: { isActive: user.isActive } });
+  } catch (error) { next(error); }
+};
