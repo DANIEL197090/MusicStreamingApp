@@ -180,3 +180,13 @@ const updateAlbum = async (req, res, next) => {
     res.json({ success: true, message: "Album updated", data: { album: populated } });
   } catch (error) { next(error); }
 };
+
+const deleteAlbum = async (req, res, next) => {
+  try {
+    const album = await Album.findById(req.params.id);
+    if (!album) return res.status(404).json({ success: false, message: "Album not found" });
+    if (album.coverImagePublicId) await deleteFromCloudinary(album.coverImagePublicId);
+    await Album.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Album deleted" });
+  } catch (error) { next(error); }
+};
