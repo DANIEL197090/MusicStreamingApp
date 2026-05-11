@@ -255,3 +255,16 @@ const getAnalyticsOverview = async (req, res, next) => {
     });
   } catch (error) { next(error); }
 };
+
+const getStreamAnalytics = async (req, res, next) => {
+  try {
+    const { days = 30 } = req.query;
+    const startDate = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
+    const dailyStreams = await ListeningHistory.aggregate([
+      { $match: { playedAt: { $gte: startDate }, completedPlay: true } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$playedAt" } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+    res.json({ success: true, data: { dailyStreams } });
+  } catch (error) { next(error); }
+};
