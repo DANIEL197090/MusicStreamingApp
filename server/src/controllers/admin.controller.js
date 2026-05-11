@@ -65,3 +65,15 @@ const updateSong = async (req, res, next) => {
     res.json({ success: true, message: "Song updated", data: { song: populated } });
   } catch (error) { next(error); }
 };
+
+const deleteSong = async (req, res, next) => {
+  try {
+    const song = await Song.findById(req.params.id);
+    if (!song) return res.status(404).json({ success: false, message: "Song not found" });
+    if (song.cloudinaryPublicId) await deleteFromCloudinary(song.cloudinaryPublicId, "video");
+    if (song.artworkPublicId) await deleteFromCloudinary(song.artworkPublicId);
+    song.isActive = false;
+    await song.save();
+    res.json({ success: true, message: "Song deleted" });
+  } catch (error) { next(error); }
+};
