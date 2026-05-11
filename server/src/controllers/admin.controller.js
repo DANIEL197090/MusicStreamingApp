@@ -87,3 +87,22 @@ const featureSong = async (req, res, next) => {
     res.json({ success: true, message: `Song ${song.isFeatured ? "featured" : "unfeatured"}`, data: { isFeatured: song.isFeatured } });
   } catch (error) { next(error); }
 };
+
+// ==================== ARTIST MANAGEMENT ====================
+
+const createArtist = async (req, res, next) => {
+  try {
+    const { name, bio, genres, socialLinks } = req.body;
+    const genresArray = genres ? (typeof genres === "string" ? JSON.parse(genres) : genres) : [];
+    const parsedSocial = socialLinks ? (typeof socialLinks === "string" ? JSON.parse(socialLinks) : socialLinks) : {};
+    let imageResult = null;
+    if (req.file) imageResult = await uploadImage(req.file.buffer, "artists");
+    const artist = await Artist.create({
+      name, bio: bio || "", genres: genresArray,
+      image: imageResult ? imageResult.url : null,
+      imagePublicId: imageResult ? imageResult.publicId : null,
+      socialLinks: parsedSocial,
+    });
+    res.status(201).json({ success: true, message: "Artist created", data: { artist } });
+  } catch (error) { next(error); }
+};
