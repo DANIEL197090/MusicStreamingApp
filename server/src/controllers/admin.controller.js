@@ -127,3 +127,13 @@ const updateArtist = async (req, res, next) => {
     res.json({ success: true, message: "Artist updated", data: { artist } });
   } catch (error) { next(error); }
 };
+
+const deleteArtist = async (req, res, next) => {
+  try {
+    const artist = await Artist.findById(req.params.id);
+    if (!artist) return res.status(404).json({ success: false, message: "Artist not found" });
+    if (artist.imagePublicId) await deleteFromCloudinary(artist.imagePublicId);
+    await Artist.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Artist deleted" });
+  } catch (error) { next(error); }
+};
