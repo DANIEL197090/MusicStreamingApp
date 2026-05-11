@@ -242,3 +242,16 @@ const getAnalyticsOverview = async (req, res, next) => {
       Album.countDocuments(),
       ListeningHistory.countDocuments({ completedPlay: true }),
     ]);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const activeToday = await ListeningHistory.distinct("user", { playedAt: { $gte: today } });
+    const topSongs = await Song.find({ isActive: true }).populate("artist", "name").sort("-streamCount").limit(10).lean();
+    const topArtists = await Artist.find().sort("-followerCount").limit(10).lean();
+    res.json({
+      success: true,
+      data: {
+        overview: { totalUsers, totalSongs, totalArtists, totalAlbums, totalStreams, activeUsersToday: activeToday.length },
+        topSongs, topArtists,
+      },
+    });
+  } catch (error) { next(error); }
+};
