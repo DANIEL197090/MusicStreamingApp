@@ -106,3 +106,24 @@ const createArtist = async (req, res, next) => {
     res.status(201).json({ success: true, message: "Artist created", data: { artist } });
   } catch (error) { next(error); }
 };
+
+const updateArtist = async (req, res, next) => {
+  try {
+    const artist = await Artist.findById(req.params.id);
+    if (!artist) return res.status(404).json({ success: false, message: "Artist not found" });
+    const { name, bio, genres, socialLinks, isFeatured } = req.body;
+    if (name) artist.name = name;
+    if (bio !== undefined) artist.bio = bio;
+    if (genres) artist.genres = typeof genres === "string" ? JSON.parse(genres) : genres;
+    if (socialLinks) artist.socialLinks = typeof socialLinks === "string" ? JSON.parse(socialLinks) : socialLinks;
+    if (isFeatured !== undefined) artist.isFeatured = isFeatured === "true" || isFeatured === true;
+    if (req.file) {
+      if (artist.imagePublicId) await deleteFromCloudinary(artist.imagePublicId);
+      const imageResult = await uploadImage(req.file.buffer, "artists");
+      artist.image = imageResult.url;
+      artist.imagePublicId = imageResult.publicId;
+    }
+    await artist.save();
+    res.json({ success: true, message: "Artist updated", data: { artist } });
+  } catch (error) { next(error); }
+};
