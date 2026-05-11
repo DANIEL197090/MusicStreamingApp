@@ -230,3 +230,15 @@ const deleteUser = async (req, res, next) => {
     res.json({ success: true, message: "User deleted" });
   } catch (error) { next(error); }
 };
+
+// ==================== ANALYTICS ====================
+
+const getAnalyticsOverview = async (req, res, next) => {
+  try {
+    const [totalUsers, totalSongs, totalArtists, totalAlbums, totalStreams] = await Promise.all([
+      User.countDocuments({ role: "user" }),
+      Song.countDocuments({ isActive: true }),
+      Artist.countDocuments(),
+      Album.countDocuments(),
+      ListeningHistory.countDocuments({ completedPlay: true }),
+    ]);
