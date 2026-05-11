@@ -158,3 +158,25 @@ const createAlbum = async (req, res, next) => {
     res.status(201).json({ success: true, message: "Album created", data: { album: populated } });
   } catch (error) { next(error); }
 };
+
+const updateAlbum = async (req, res, next) => {
+  try {
+    const album = await Album.findById(req.params.id);
+    if (!album) return res.status(404).json({ success: false, message: "Album not found" });
+    const { title, artist, genre, releaseDate, description } = req.body;
+    if (title) album.title = title;
+    if (artist) album.artist = artist;
+    if (genre) album.genre = typeof genre === "string" ? JSON.parse(genre) : genre;
+    if (releaseDate) album.releaseDate = releaseDate;
+    if (description !== undefined) album.description = description;
+    if (req.file) {
+      if (album.coverImagePublicId) await deleteFromCloudinary(album.coverImagePublicId);
+      const coverResult = await uploadImage(req.file.buffer, "albums");
+      album.coverImage = coverResult.url;
+      album.coverImagePublicId = coverResult.publicId;
+    }
+    await album.save();
+    const populated = await Album.findById(album._id).populate("artist", "name image");
+    res.json({ success: true, message: "Album updated", data: { album: populated } });
+  } catch (error) { next(error); }
+};
