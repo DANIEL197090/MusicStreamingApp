@@ -268,3 +268,15 @@ const getStreamAnalytics = async (req, res, next) => {
     res.json({ success: true, data: { dailyStreams } });
   } catch (error) { next(error); }
 };
+
+// ==================== PLAYLIST MANAGEMENT ====================
+
+const createFeaturedPlaylist = async (req, res, next) => {
+  try {
+    const { title, description, songs } = req.body;
+    const playlist = await Playlist.create({
+      title, description, songs: songs || [], user: req.user._id, isPublic: true, isFeatured: true,
+    });
+    res.status(201).json({ success: true, message: "Featured playlist created", data: { playlist } });
+  } catch (error) { next(error); }
+};
