@@ -1,5 +1,5 @@
 const Song = require("../models/Song");
-const Artist = require("../models/Artist");
+const Artist = require("../modules/artists/artist.model");
 const Album = require("../models/Album");
 const User = require("../models/User");
 const Playlist = require("../models/Playlist");

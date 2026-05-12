@@ -7,7 +7,7 @@
 
 const Song = require("../models/Song");
 const ListeningHistory = require("../models/ListeningHistory");
-const Artist = require("../models/Artist");
+const Artist = require("../modules/artists/artist.model");
 const Playlist = require("../models/Playlist");
 
 /**
