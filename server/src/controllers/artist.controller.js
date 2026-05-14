@@ -1,7 +1,7 @@
 // TODO: Implement artist controllers
 
 const Artist = require("../models/Artist");
-const Song = require("../models/Song");
+const Song = require("../models/Song.model");
 const Album = require("../models/Album");
 const User = require("../models/User");
 

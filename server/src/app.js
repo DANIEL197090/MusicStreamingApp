@@ -12,9 +12,9 @@ const artistRoutes = require("./routes/artist.routes");
 const albumRoutes = require("./routes/album.routes");
 const playlistRoutes = require("./routes/playlist.routes");
 const searchRoutes = require("./routes/search.routes");
-const recommendationRoutes = require("./routes/recommendation.routes");
 const historyRoutes = require("./routes/user.routes");
 const adminRoutes = require("./routes/admin.routes");
+const recommendationRoutes = require("./routes/recommendation.routes");
 
 const app = express();
 
@@ -66,9 +66,9 @@ app.use("/api/artists", artistRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/search", searchRoutes);
-app.use("/api/feed", recommendationRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 // ==================== ERROR HANDLING ====================
 

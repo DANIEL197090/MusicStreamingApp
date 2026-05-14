@@ -2,7 +2,7 @@
 
 const { validationResult } = require("express-validator");
 const Playlist = require("../models/Playlist");
-const Song = require("../models/Song");
+const Song = require("../models/Song.model");
 
 /**
  * @desc    Get current user's playlists

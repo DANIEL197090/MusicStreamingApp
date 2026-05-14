@@ -1,51 +1,55 @@
-// TODO: Implement recommendation/feed controllers
-// Recommendations are RULE-BASED for MVP (not ML):
-//   "Trending"     = most streams (sort by streamCount)
-//   "New Releases" = songs added in last 14 days
-//   "Recommended"  = songs matching user's listened genres (from ListeningHistory)
-//   "Featured"     = admin-promoted songs, artists, playlists
+const Song = require('../models/song.model');
 
-const Song = require("../models/Song");
-const ListeningHistory = require("../models/ListeningHistory");
-const Artist = require("../models/Artist");
-const Playlist = require("../models/Playlist");
 
-/**
- * @desc    Get trending songs (most streamed)
- * @route   GET /api/feed/trending
- * @access  Public
- */
-const getTrending = async (req, res, next) => {
-  // TODO: Find active songs sorted by streamCount desc
+const trendingSongs = async (req, res) => {
+  try {
+    const songs = await Song.find().sort({ playCount: -1 }).limit(20).populate("artist", "name avatar");
+    res.status(200).json(songs);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
-/**
- * @desc    Get new releases (last 14 days)
- * @route   GET /api/feed/new-releases
- * @access  Public
- */
-const getNewReleases = async (req, res, next) => {
-  // TODO: Find active songs with releaseDate >= 14 days ago
+const newReleases = async (req, res) => {
+  try {
+    const songs = await Song.find().sort({ releaseDate: -1 }).limit(20).populate("artist", "name avatar");
+    res.status(200).json(songs);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
-/**
- * @desc    Get personalized recommendations based on listening history
- * @route   GET /api/feed/recommended
- * @access  Private
- */
-const getRecommended = async (req, res, next) => {
-  // TODO: Analyze user's ListeningHistory to find preferred genres/artists
-  // Then recommend songs from those genres/artists they haven't listened to
-  // Fallback to popular songs if no history
+const featuredcontent = async (req, res) => {
+  try {
+    const songs = await Song.find({ isFeatured: true }).populate("artist", "name avatar");
+    res.status(200).json(songs);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
-/**
- * @desc    Get featured content (admin-promoted)
- * @route   GET /api/feed/featured
- * @access  Public
- */
-const getFeatured = async (req, res, next) => {
-  // TODO: Fetch featured songs, artists, and playlists in parallel
+const getRecommendations = async (req, res) => {
+  try {
+    // Example logic: fetch 10 random songs
+    const songs = await Song.find().limit(10);
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-module.exports = { getTrending, getNewReleases, getRecommended, getFeatured };
+module.exports = {
+  trendingSongs,
+  newReleases,
+  featuredcontent,
+  getRecommendations
+};

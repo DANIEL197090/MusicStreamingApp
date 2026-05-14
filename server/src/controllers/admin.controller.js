@@ -2,7 +2,7 @@
 // Admin routes handle CRUD for songs, artists, albums + user management + analytics
 // Use Cloudinary utils for file uploads: uploadAudio, uploadImage, deleteFromCloudinary
 
-const Song = require("../models/Song");
+const Song = require("../models/Song.model");
 const Artist = require("../models/Artist");
 const Album = require("../models/Album");
 const User = require("../models/User");

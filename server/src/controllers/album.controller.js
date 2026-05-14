@@ -1,7 +1,7 @@
 // TODO: Implement album controllers
 
 const Album = require("../models/Album");
-const Song = require("../models/Song");
+const Song = require("../models/Song.model");
 
 /**
  * @desc    Get all albums (paginated)

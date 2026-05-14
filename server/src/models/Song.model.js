@@ -76,4 +76,4 @@ songSchema.index({ artist: 1, album: 1 });
 songSchema.index({ genre: 1 });
 songSchema.index({ isFeatured: 1, isActive: 1 });
 
-module.exports = mongoose.model("Song", songSchema);
+module.exports = mongoose.models.Song || mongoose.model('Song', songSchema);

@@ -2,7 +2,7 @@
 // Models needed: Song, User, ListeningHistory
 // Songs are served from Cloudinary CDN — the backend is a metadata API, NOT a media proxy
 
-const Song = require("../models/Song");
+const Song = require("../models/Song.model");
 const User = require("../models/User");
 const ListeningHistory = require("../models/ListeningHistory");
 
