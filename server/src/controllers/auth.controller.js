@@ -1,6 +1,4 @@
-// TODO: Implement authentication controllers
-// Each controller receives (req, res, next) and should use the User model + JWT utils
-// Use validationResult(req) from express-validator to check input errors before processing
+
 
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
@@ -13,12 +11,34 @@ const { generateToken } = require("../utils/jwt.utils");
  * @body    { fullName, username, email, password }
  */
 const register = async (req, res, next) => {
-  // TODO: Implement registration
-  // 1. Check validationResult(req) for errors
-  // 2. Check if user already exists (by email or username)
-  // 3. Create user via User.create()
-  // 4. Generate JWT token via generateToken(user._id)
-  // 5. Return { success: true, data: { user, token } }
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { fullName, username, email, password } = req.body;
+
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: existingUser.email === email
+          ? "Email already registered"
+          : "Username already taken",
+      });
+    }
+
+    const user = await User.create({ fullName, username, email, password });
+    const token = generateToken(user._id);
+
+    return res.status(201).json({
+      success: true,
+      data: { user, token },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -28,11 +48,46 @@ const register = async (req, res, next) => {
  * @body    { email, password }
  */
 const login = async (req, res, next) => {
-  // TODO: Implement login
-  // 1. Find user by email with .select("+password")
-  // 2. Check if user.isActive (not suspended)
-  // 3. Compare password via user.comparePassword(password)
-  // 4. Generate token and return user + token
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been suspended",
+      });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    return res.status(200).json({
+      success: true,
+      data: { user, token },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -41,9 +96,20 @@ const login = async (req, res, next) => {
  * @access  Private (requires protect middleware)
  */
 const getMe = async (req, res, next) => {
-  // TODO: Implement get profile
-  // req.user is already set by auth middleware
-  // Populate likedSongs and following fields
+
+
+   try {
+    const user = await User.findById(req.user._id)
+      .populate("likedSongs", "title artist artwork duration streamCount")
+      .populate("following", "name avatar genre");
+
+    return res.status(200).json({
+      success: true,
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -53,9 +119,41 @@ const getMe = async (req, res, next) => {
  * @body    { fullName?, username? }
  */
 const updateProfile = async (req, res, next) => {
-  // TODO: Implement profile update
-  // Only allow updating fullName and username
-  // Check if new username is taken before updating
+
+
+    try {
+    const { fullName, username } = req.body;
+
+    if (username) {
+      const existing = await User.findOne({
+        username,
+        _id: { $ne: req.user._id },
+      });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already taken",
+        });
+      }
+    }
+
+    const updateFields = {};
+    if (fullName) updateFields.fullName = fullName;
+    if (username) updateFields.username = username;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { register, login, getMe, updateProfile };

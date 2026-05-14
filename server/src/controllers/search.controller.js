@@ -1,6 +1,6 @@
 // TODO: Implement search controller
 
-const Song = require("../models/Song.model");
+const Song = require("../models/Song");
 const Artist = require("../models/Artist");
 const Album = require("../models/Album");
 const Playlist = require("../models/Playlist");

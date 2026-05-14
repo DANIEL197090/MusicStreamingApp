@@ -8,7 +8,7 @@ const { errorHandler, notFound } = require("./middleware/error.middleware");
 // Import routes
 const authRoutes = require("./routes/auth.routes");
 const songRoutes = require("./routes/song.routes");
-const artistRoutes = require("./routes/artist.routes");
+// const artistRoutes = require("./routes/artist.routes"); // Moved to app.js for better modularity
 const albumRoutes = require("./routes/album.routes");
 const playlistRoutes = require("./routes/playlist.routes");
 const searchRoutes = require("./routes/search.routes");
@@ -62,13 +62,13 @@ app.get("/api/health", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
-app.use("/api/artists", artistRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use('/api/artists', require('./modules/artists/artist.routes'));
 
 // ==================== ERROR HANDLING ====================
 

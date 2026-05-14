@@ -1,5 +1,7 @@
 const Song = require('../models/song.model');
-
+const ListeningHistory = require("../models/ListeningHistory");
+const Artist = require("../modules/artists/artist.model");
+const Playlist = require("../models/Playlist");
 
 const trendingSongs = async (req, res) => {
   try {
