@@ -1,5 +1,3 @@
-// TODO: Implement album controllers
-
 const Album = require("../models/Album");
 const Song = require("../models/Song");
 
@@ -10,7 +8,39 @@ const Song = require("../models/Song");
  * @query   page, limit, artist, sort
  */
 const getAlbums = async (req, res, next) => {
-  // TODO: Paginated list, filter by artist, populate artist ref
+  try {
+    const { page = 1, limit = 20, artist, sort = "-createdAt" } = req.query;
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+
+    const filter = {};
+    if (artist) filter.artist = artist;
+
+    const [albums, total] = await Promise.all([
+      Album.find(filter)
+        .populate("artist", "name image")
+        .sort(sort)
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      Album.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        albums,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -19,7 +49,29 @@ const getAlbums = async (req, res, next) => {
  * @access  Public
  */
 const getAlbumById = async (req, res, next) => {
-  // TODO: Find album, populate artist, fetch album's songs
+  try {
+    const album = await Album.findById(req.params.id)
+      .populate("artist", "name image")
+      .lean();
+
+    if (!album) {
+      return res.status(404).json({ success: false, message: "Album not found" });
+    }
+
+    // Fetch album's songs
+    const songs = await Song.find({ album: album._id })
+      .populate("artist", "name")
+      .lean();
+    
+    album.songs = songs;
+
+    res.json({
+      success: true,
+      data: { album }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { getAlbums, getAlbumById };
