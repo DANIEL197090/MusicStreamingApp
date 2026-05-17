@@ -55,4 +55,4 @@ artistSchema.index({ name: "text" });
 artistSchema.index({ isFeatured: 1 });
 artistSchema.index({ followerCount: -1 });
 
-module.exports = mongoose.model("Artist", artistSchema);
+module.exports = mongoose.models.Artist || mongoose.model('Artist', artistSchema);
