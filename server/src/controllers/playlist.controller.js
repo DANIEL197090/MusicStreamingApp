@@ -35,7 +35,6 @@ const getPlaylistById = async (req, res, next) => {
  * @desc    Create playlist
  * @route   POST /api/playlists
  * @access  Private
- * @body    { title, description?, isPublic? }
  */
 const createPlaylist = async (req, res, next) => {
   // TODO: Validate input, create playlist with user: req.user._id
@@ -63,7 +62,6 @@ const deletePlaylist = async (req, res, next) => {
  * @desc    Add song to playlist
  * @route   POST /api/playlists/:id/songs
  * @access  Private (owner only)
- * @body    { songId }
  */
 const addSongToPlaylist = async (req, res, next) => {
   // TODO: Verify song exists, check for duplicates, push to playlist.songs
