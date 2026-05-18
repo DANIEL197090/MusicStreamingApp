@@ -165,7 +165,35 @@ const getRecommended = async (req, res, next) => {
  * @access  Public
  */
 const getFeatured = async (req, res, next) => {
-  // TODO: Implement getFeatured
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+
+    const [songs, artists, playlists] = await Promise.all([
+      // Featured songs
+      Song.find({ isFeatured: true, isActive: true })
+        .limit(limit)
+        .populate("artist", "name image bio")
+        .populate("album", "title coverImage coverImagePublicId releaseDate"),
+      // Featured artists
+      Artist.find({ $or: [{ is_featured: true }, { isFeatured: true }] })
+        .limit(limit),
+      // Featured playlists (public only)
+      Playlist.find({ isFeatured: true, isPublic: true })
+        .limit(limit)
+        .populate("user", "username")
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        songs,
+        artists,
+        playlists
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { getTrending, getNewReleases, getRecommended, getFeatured };
