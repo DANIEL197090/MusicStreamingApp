@@ -73,7 +73,90 @@ const getNewReleases = async (req, res, next) => {
  * @access  Private
  */
 const getRecommended = async (req, res, next) => {
-  // TODO: Implement getRecommended
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const userId = req.user._id;
+
+    // 1. Get user's listening history
+    const history = await ListeningHistory.find({ user: userId })
+      .limit(100)
+      .populate("song");
+
+    const playedSongIds = history.map(h => h.song?._id).filter(Boolean);
+
+    // 2. Identify top genres and artists from history
+    const genresCount = {};
+    const artistsCount = {};
+
+    history.forEach(h => {
+      if (h.song) {
+        if (h.song.genre && Array.isArray(h.song.genre)) {
+          h.song.genre.forEach(g => {
+            genresCount[g] = (genresCount[g] || 0) + 1;
+          });
+        }
+        if (h.song.artist) {
+          const artistStr = h.song.artist.toString();
+          artistsCount[artistStr] = (artistsCount[artistStr] || 0) + 1;
+        }
+      }
+    });
+
+    const topGenres = Object.keys(genresCount).sort((a, b) => genresCount[b] - genresCount[a]).slice(0, 3);
+    const topArtists = Object.keys(artistsCount).sort((a, b) => artistsCount[b] - artistsCount[a]).slice(0, 3);
+
+    let recommendedSongs = [];
+
+    // 3. Build recommendation query
+    if (topGenres.length > 0 || topArtists.length > 0) {
+      const matchCriteria = {
+        isActive: true,
+        _id: { $nin: playedSongIds }
+      };
+
+      const orCriteria = [];
+      if (topGenres.length > 0) {
+        orCriteria.push({ genre: { $in: topGenres } });
+      }
+      if (topArtists.length > 0) {
+        orCriteria.push({ artist: { $in: topArtists } });
+      }
+
+      if (orCriteria.length > 0) {
+        matchCriteria.$or = orCriteria;
+      }
+
+      recommendedSongs = await Song.find(matchCriteria)
+        .sort({ streamCount: -1, createdAt: -1 })
+        .limit(limit)
+        .populate("artist", "name image bio")
+        .populate("album", "title coverImage coverImagePublicId releaseDate");
+    }
+
+    // 4. Fallback if not enough recommendations (or no history)
+    if (recommendedSongs.length < limit) {
+      const needed = limit - recommendedSongs.length;
+      const excludeIds = [...playedSongIds, ...recommendedSongs.map(s => s._id)];
+      
+      const fallbackSongs = await Song.find({
+        isActive: true,
+        _id: { $nin: excludeIds }
+      })
+        .sort({ streamCount: -1, createdAt: -1 })
+        .limit(needed)
+        .populate("artist", "name image bio")
+        .populate("album", "title coverImage coverImagePublicId releaseDate");
+
+      recommendedSongs = [...recommendedSongs, ...fallbackSongs];
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { songs: recommendedSongs },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
