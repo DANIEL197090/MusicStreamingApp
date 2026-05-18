@@ -1,5 +1,4 @@
-// TODO: Implement album controllers
-
+// Album feature imports
 const Album = require("../models/Album");
 const Song = require("../models/Song");
 
@@ -7,10 +6,9 @@ const Song = require("../models/Song");
  * @desc    Get all albums (paginated)
  * @route   GET /api/albums
  * @access  Public
- * @query   page, limit, artist, sort
  */
 const getAlbums = async (req, res, next) => {
-  // TODO: Paginated list, filter by artist, populate artist ref
+  // TODO: Implement getAlbums
 };
 
 /**
