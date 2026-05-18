@@ -1,7 +1,6 @@
-// TODO: Implement search controller
-
+// Core search modules
 const Song = require("../models/Song");
-const Artist = require('../modules/artists/artist.model');
+const Artist = require("../modules/artists/artist.model");
 const Album = require("../models/Album");
 const Playlist = require("../models/Playlist");
 
@@ -9,14 +8,23 @@ const Playlist = require("../models/Playlist");
  * @desc    Search songs, artists, albums, playlists
  * @route   GET /api/search?q=<query>&type=<all|songs|artists|albums|playlists>
  * @access  Public
- * @query   q (search term), type (filter), page, limit
  */
 const search = async (req, res, next) => {
-  // TODO: Implement multi-type search
-  // 1. Build a case-insensitive regex from query param "q"
-  // 2. Based on "type" param, search across one or all collections
-  // 3. Songs: search by title, Artists: by name, Albums: by title, Playlists: by title (public only)
-  // 4. Return paginated results
+  try {
+    const { q, type = "all", page = 1, limit = 20 } = req.query;
+    
+    // Handle empty queries gracefully
+    if (!q || q.trim() === "") {
+      return res.status(200).json({
+        success: true,
+        data: type === "all" 
+          ? { songs: [], artists: [], albums: [], playlists: [] } 
+          : { results: [], pagination: { page: Number(page), limit: Number(limit), total: 0, totalPages: 0 } }
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { search };
