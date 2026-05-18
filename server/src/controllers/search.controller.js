@@ -61,7 +61,20 @@ const search = async (req, res, next) => {
         .populate("artist", "name image bio")
         .populate("album", "title coverImage coverImagePublicId releaseDate");
       countQuery = Song.countDocuments({ title: regex, isActive: true });
-      
+    } else if (type === "artists") {
+      query = Artist.find({ name: regex })
+        .skip(skip)
+        .limit(parsedLimit);
+      countQuery = Artist.countDocuments({ name: regex });
+    } else if (type === "albums") {
+      query = Album.find({ title: regex })
+        .skip(skip)
+        .limit(parsedLimit)
+        .populate("artist", "name image bio");
+      countQuery = Album.countDocuments({ title: regex });
+    }
+
+    if (query) {
       const [results, total] = await Promise.all([query, countQuery]);
       return res.status(200).json({
         success: true,
