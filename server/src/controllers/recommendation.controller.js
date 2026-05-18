@@ -33,7 +33,38 @@ const getTrending = async (req, res, next) => {
  * @access  Public
  */
 const getNewReleases = async (req, res, next) => {
-  // TODO: Implement new releases
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    
+    // Check release threshold date
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    let songs = await Song.find({
+      isActive: true,
+      releaseDate: { $gte: fourteenDaysAgo }
+    })
+      .sort({ releaseDate: -1 })
+      .limit(limit)
+      .populate("artist", "name image bio")
+      .populate("album", "title coverImage coverImagePublicId releaseDate");
+
+    // Fallback: If no songs in the last 14 days, get the latest songs.
+    if (songs.length === 0) {
+      songs = await Song.find({ isActive: true })
+        .sort({ releaseDate: -1 })
+        .limit(limit)
+        .populate("artist", "name image bio")
+        .populate("album", "title coverImage coverImagePublicId releaseDate");
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { songs },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
