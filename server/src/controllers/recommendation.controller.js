@@ -1,10 +1,4 @@
-// TODO: Implement recommendation/feed controllers
-// Recommendations are RULE-BASED for MVP (not ML):
-//   "Trending"     = most streams (sort by streamCount)
-//   "New Releases" = songs added in last 14 days
-//   "Recommended"  = songs matching user's listened genres (from ListeningHistory)
-//   "Featured"     = admin-promoted songs, artists, playlists
-
+// Feed recommendation modules
 const Song = require("../models/Song");
 const ListeningHistory = require("../models/ListeningHistory");
 const Artist = require("../modules/artists/artist.model");
@@ -16,7 +10,21 @@ const Playlist = require("../models/Playlist");
  * @access  Public
  */
 const getTrending = async (req, res, next) => {
-  // TODO: Find active songs sorted by streamCount desc
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const songs = await Song.find({ isActive: true })
+      .sort({ streamCount: -1, createdAt: -1 })
+      .limit(limit)
+      .populate("artist", "name image bio")
+      .populate("album", "title coverImage coverImagePublicId releaseDate");
+
+    return res.status(200).json({
+      success: true,
+      data: { songs },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -25,7 +33,7 @@ const getTrending = async (req, res, next) => {
  * @access  Public
  */
 const getNewReleases = async (req, res, next) => {
-  // TODO: Find active songs with releaseDate >= 14 days ago
+  // TODO: Implement new releases
 };
 
 /**
@@ -34,9 +42,7 @@ const getNewReleases = async (req, res, next) => {
  * @access  Private
  */
 const getRecommended = async (req, res, next) => {
-  // TODO: Analyze user's ListeningHistory to find preferred genres/artists
-  // Then recommend songs from those genres/artists they haven't listened to
-  // Fallback to popular songs if no history
+  // TODO: Implement getRecommended
 };
 
 /**
@@ -45,7 +51,7 @@ const getRecommended = async (req, res, next) => {
  * @access  Public
  */
 const getFeatured = async (req, res, next) => {
-  // TODO: Fetch featured songs, artists, and playlists in parallel
+  // TODO: Implement getFeatured
 };
 
 module.exports = { getTrending, getNewReleases, getRecommended, getFeatured };
