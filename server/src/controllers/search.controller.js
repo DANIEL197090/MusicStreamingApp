@@ -50,6 +50,32 @@ const search = async (req, res, next) => {
         data: { songs, artists, albums, playlists }
       });
     }
+
+    let query, countQuery;
+    
+    // Stage 2: Specific category matching
+    if (type === "songs") {
+      query = Song.find({ title: regex, isActive: true })
+        .skip(skip)
+        .limit(parsedLimit)
+        .populate("artist", "name image bio")
+        .populate("album", "title coverImage coverImagePublicId releaseDate");
+      countQuery = Song.countDocuments({ title: regex, isActive: true });
+      
+      const [results, total] = await Promise.all([query, countQuery]);
+      return res.status(200).json({
+        success: true,
+        data: {
+          results,
+          pagination: {
+            page: parsedPage,
+            limit: parsedLimit,
+            total,
+            totalPages: Math.ceil(total / parsedLimit)
+          }
+        }
+      });
+    }
   } catch (error) {
     next(error);
   }
