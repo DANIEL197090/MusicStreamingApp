@@ -1,4 +1,5 @@
 // Feed recommendation modules
+const mongoose = require("mongoose");
 const Song = require("../models/Song");
 const ListeningHistory = require("../models/ListeningHistory");
 const Artist = require("../modules/artists/artist.model");
@@ -82,7 +83,9 @@ const getRecommended = async (req, res, next) => {
       .limit(100)
       .populate("song");
 
-    const playedSongIds = history.map(h => h.song?._id).filter(Boolean);
+    const playedSongIds = history
+      .map(h => h.song?._id)
+      .filter(id => id && mongoose.Types.ObjectId.isValid(id.toString()));
 
     // 2. Identify top genres and artists from history
     const genresCount = {};
@@ -95,7 +98,7 @@ const getRecommended = async (req, res, next) => {
             genresCount[g] = (genresCount[g] || 0) + 1;
           });
         }
-        if (h.song.artist) {
+        if (h.song.artist && mongoose.Types.ObjectId.isValid(h.song.artist.toString())) {
           const artistStr = h.song.artist.toString();
           artistsCount[artistStr] = (artistsCount[artistStr] || 0) + 1;
         }
@@ -103,7 +106,10 @@ const getRecommended = async (req, res, next) => {
     });
 
     const topGenres = Object.keys(genresCount).sort((a, b) => genresCount[b] - genresCount[a]).slice(0, 3);
-    const topArtists = Object.keys(artistsCount).sort((a, b) => artistsCount[b] - artistsCount[a]).slice(0, 3);
+    const topArtists = Object.keys(artistsCount)
+      .filter(id => mongoose.Types.ObjectId.isValid(id))
+      .sort((a, b) => artistsCount[b] - artistsCount[a])
+      .slice(0, 3);
 
     let recommendedSongs = [];
 
@@ -136,7 +142,8 @@ const getRecommended = async (req, res, next) => {
     // 4. Fallback if not enough recommendations (or no history)
     if (recommendedSongs.length < limit) {
       const needed = limit - recommendedSongs.length;
-      const excludeIds = [...playedSongIds, ...recommendedSongs.map(s => s._id)];
+      const excludeIds = [...playedSongIds, ...recommendedSongs.map(s => s._id)]
+        .filter(id => id && mongoose.Types.ObjectId.isValid(id.toString()));
       
       const fallbackSongs = await Song.find({
         isActive: true,
