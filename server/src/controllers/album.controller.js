@@ -18,8 +18,30 @@ const getAlbums = async (req, res, next) => {
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
-    
-    // Paging results logic to be committed next
+
+    // Stage 2: Fetch data and count in parallel
+    const [albums, total] = await Promise.all([
+      Album.find(filter)
+        .populate("artist", "name image")
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Album.countDocuments(filter),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        albums,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      },
+    });
   } catch (error) {
     next(error);
   }
