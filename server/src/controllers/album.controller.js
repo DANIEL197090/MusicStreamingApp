@@ -8,7 +8,21 @@ const Song = require("../models/Song");
  * @access  Public
  */
 const getAlbums = async (req, res, next) => {
-  // TODO: Implement getAlbums
+  try {
+    // Stage 1: Parse and validate query parameters
+    const { page = 1, limit = 20, artist, sort = "-releaseDate" } = req.query;
+
+    const filter = {};
+    if (artist) filter.artist = artist;
+
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+    
+    // Paging results logic to be committed next
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
