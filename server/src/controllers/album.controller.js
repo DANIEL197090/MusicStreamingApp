@@ -53,7 +53,23 @@ const getAlbums = async (req, res, next) => {
  * @access  Public
  */
 const getAlbumById = async (req, res, next) => {
-  // TODO: Find album, populate artist, fetch album's songs
+  try {
+    // Stage 1: Fetch album details by ID
+    const album = await Album.findById(req.params.id)
+      .populate("artist", "name image")
+      .lean();
+
+    if (!album) {
+      return res.status(404).json({
+        success: false,
+        message: "Album not found",
+      });
+    }
+    
+    // songs fetch to be committed in Commit 6
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { getAlbums, getAlbumById };
