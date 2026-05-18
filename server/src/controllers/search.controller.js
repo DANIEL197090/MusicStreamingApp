@@ -30,6 +30,7 @@ const search = async (req, res, next) => {
 
     // Stage 1: Search across all categories
     if (type === "all") {
+      // Fetch a fast snapshot of each entity in parallel
       const [songs, artists, albums, playlists] = await Promise.all([
         Song.find({ title: regex, isActive: true })
           .limit(10)
@@ -51,6 +52,7 @@ const search = async (req, res, next) => {
       });
     }
 
+    // Type-specific search with pagination support
     let query, countQuery;
     
     // Stage 2: Specific category matching
@@ -72,23 +74,34 @@ const search = async (req, res, next) => {
         .limit(parsedLimit)
         .populate("artist", "name image bio");
       countQuery = Album.countDocuments({ title: regex });
-    }
-
-    if (query) {
-      const [results, total] = await Promise.all([query, countQuery]);
-      return res.status(200).json({
-        success: true,
-        data: {
-          results,
-          pagination: {
-            page: parsedPage,
-            limit: parsedLimit,
-            total,
-            totalPages: Math.ceil(total / parsedLimit)
-          }
-        }
+    } else if (type === "playlists") {
+      query = Playlist.find({ title: regex, isPublic: true })
+        .skip(skip)
+        .limit(parsedLimit)
+        .populate("user", "username");
+      countQuery = Playlist.countDocuments({ title: regex, isPublic: true });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid search type. Use 'all', 'songs', 'artists', 'albums', or 'playlists'."
       });
     }
+
+    const [results, total] = await Promise.all([query, countQuery]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        results,
+        pagination: {
+          page: parsedPage,
+          limit: parsedLimit,
+          total,
+          totalPages: Math.ceil(total / parsedLimit)
+        }
+      }
+    });
+
   } catch (error) {
     next(error);
   }
