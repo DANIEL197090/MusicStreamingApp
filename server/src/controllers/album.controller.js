@@ -65,8 +65,22 @@ const getAlbumById = async (req, res, next) => {
         message: "Album not found",
       });
     }
-    
-    // songs fetch to be committed in Commit 6
+
+    // Stage 2: Fetch and populate album tracks
+    const songs = await Song.find({
+      album: album._id,
+      isActive: true,
+    })
+      .populate("artist", "name image")
+      .sort("createdAt")
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        album: { ...album, songs },
+      },
+    });
   } catch (error) {
     next(error);
   }
